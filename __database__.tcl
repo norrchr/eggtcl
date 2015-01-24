@@ -13,6 +13,10 @@ namespace eval __database__ {
 			__sqldb eval {INSERT INTO channels (channel) VALUES ('#mybdz')}
 			puts "Inserted #mybdz into channels db"
 		}
+		if {![__sqldb exists {SELECT channel FROM channels WHERE channel = '#blazed'}]} {
+			__sqldb eval {INSERT INTO channels (channel) VALUES ('#blazed')}
+			puts "Inserted #blazed into channels db"
+		}
 		puts "__ondbload complete"
 	}
 	

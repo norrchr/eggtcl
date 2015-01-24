@@ -230,7 +230,5 @@ source [pwd]/__users__.tcl
 namespace import __channel__::channel __channel__::chanlist __channel__::isop __channel__::isvoice __channel__::channels __channel__::validchan
 namespace import __core__::__writetosock __core__::putquick __core__::die __core__::rehash
 
-channel add #private
-
 puts "__core__::__doconnection"
 __core__::__doconnection
