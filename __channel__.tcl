@@ -9,6 +9,36 @@ namespace eval __channel__ {
 	if {![array exists __channels]} {
 		array set __channels {}
 	}
+	
+	proc __clearchanlistforchannel {channel} {
+		variable __chanlist
+		set channel [string tolower $channel]
+		foreach element [array names __chanlist $channel,*] {
+			if {$element eq ""} { continue }
+			unset __chanlist($element)
+		}
+		return 1
+	}
+	
+	proc __removeuserfromchanlists {user} {
+		variable __chanlist
+		set user [string tolower $user]
+		foreach element [array names __chanlist *,$user] {
+			if {$element eq ""} { continue }
+			unset __chanlist($element)
+		}
+		return 1
+	}
+	
+	proc __removeuserfromchanlist {channel user} {
+		variable __chanlist
+		set channel [string tolower $channel]
+		set user [string tolower $user]
+		if {[info exists __chanlist($channel,$user)]} {
+			unset __chanlist($channel,$user); return 1
+		}
+		return 0
+	}		
 
 	proc __clearlists {} {
 		variable __chanlist; variable __channels

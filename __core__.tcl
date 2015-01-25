@@ -128,7 +128,29 @@ namespace eval __core__ {
 						set hostname [lindex [split [lindex [split $__line] 0] !] 1]
 						if {[string equal -nocase $nickname $__botnick]} {
 							set __joined($channel) [clock clicks]
+						} else {
+							__channel__::__addusertochanlist $channel $nickname ""
 						}
+					} elseif {[string equal -nocase "PART" [lindex [split $__line] 1]]} {
+						set channel [string tolower [lindex [split $__line] 2]]
+						if {![validchan $channel]} { puts "__loop raw JOIN error: JOIN for unknown channel $channel"; continue }
+						set nickname [string trimleft [lindex [split [lindex [split $__line] 0] !] 0] :]
+						set hostname [lindex [split [lindex [split $__line] 0] !] 1]
+						if {[string equal -nocase $nickname $__botnick]} {
+							__channel__::__clearchanlistforchannel $channel
+						} else {
+							__channel__::__removeuserfromchanlist $channel $nickname
+						}
+					} elseif {[string equal -nocase "QUIT" [lindex [split $__line] 1]]} {
+						set nickname [string trimleft [lindex [split [lindex [split $__line] 0] !] 0] :]
+						set hostname [lindex [split [lindex [split $__line] 0] !] 1]
+						set reason [string trimleft [join [lrange $__line 2 end]] :]
+						#if {[string equal -nocase "\*.net \*.split" $reason]} {
+							# handle netsplits here
+							# return
+						#}
+						__channel__::__removeuserfromchanlists $nickname
+						__users__::__removeuserfromuserinfo $nickname				
 					} elseif {[string equal -nocase "353" [lindex [split $__line] 1]]} {
 						set for [lindex [split $__line] 2]
 						set channel [lindex [split $__line] 4]
@@ -182,6 +204,7 @@ namespace eval __core__ {
 						if {![validchan $channel]} { puts "__loop raw 315 error: Reply for unknown channel $channel"; continue }
 						set ms "[format "%.2f" [expr {([clock clicks]-$__joined($channel)) / 1000.0}]]ms"
 						__writetosock "PRIVMSG $channel :Processed $channel in $ms (Users: [llength [chanlist $channel]])"
+						puts "$channel [llength [chanlist $channel]]: [join [chanlist $channel] ", "]"
 					}						
 					# process this line and fire off the binds
 				}

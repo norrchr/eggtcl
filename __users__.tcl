@@ -42,6 +42,19 @@ namespace eval __users__ {
 			if {$element eq ""} { continue }
 			unset __ircusers($element)
 		}
+		return 1
+	}
+	
+	# user: __removeuserfromuserinfo
+	
+	proc __removeuserfromuserinfo {user} {
+		variable __ircusers
+		set user [string tolower $user]
+		foreach element [array names __ircuser $user,*] {
+			if {$element eq ""} { continue }
+			unset __ircusers($element)
+		}
+		return 1
 	}
 	
 	puts "__users__ loaded"
