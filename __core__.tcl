@@ -113,7 +113,6 @@ namespace eval __core__ {
 						puts "__loop 433: '$nickname' already in use, trying '${nickname}_'"
 						__writetosock "NICK ${nickname}_"
 					} elseif {[string equal -nocase "NICK" [lindex [split $__line] 1]]} {
-						# sock6 1422115760808 << :Eliran`bnc!Eliran@Unique-Limp.users.quakenet.org NICK :Unique|Enemy
 						set nickname [string trimleft [lindex [split [lindex [split $__line] 0] !] 0] :]
 						set newnickname [string trimleft [lindex [split $__line] end] :]
 						if {[string equal -nocase $nickname $__botnick]} {
@@ -127,7 +126,7 @@ namespace eval __core__ {
 						set nickname [string trimleft [lindex [split [lindex [split $__line] 0] !] 0] :]
 						set hostname [lindex [split [lindex [split $__line] 0] !] 1]
 						if {[string equal -nocase $nickname $__botnick]} {
-							set __joined($channel) [clock clicks]
+							#set __joined($channel) [clock clicks]
 						} else {
 							__channel__::__addusertochanlist $channel $nickname ""
 						}
@@ -145,13 +144,11 @@ namespace eval __core__ {
 						set nickname [string trimleft [lindex [split [lindex [split $__line] 0] !] 0] :]
 						set hostname [lindex [split [lindex [split $__line] 0] !] 1]
 						set reason [string trimleft [join [lrange $__line 2 end]] :]
-						#if {[string equal -nocase "\*.net \*.split" $reason]} {
-							# handle netsplits here
-							# return
-						#}
 						__channel__::__removeuserfromchanlists $nickname
 						__users__::__removeuserfromuserinfo $nickname				
 					} elseif {[string equal -nocase "353" [lindex [split $__line] 1]]} {
+						# only process for binds
+						continue
 						set for [lindex [split $__line] 2]
 						set channel [lindex [split $__line] 4]
 						if {![string equal -nocase "$for" "$__botnick"]} { puts "__loop raw 353 error: Reply meant for '$for' not me"; continue }
@@ -159,52 +156,40 @@ namespace eval __core__ {
 						set users [lrange $__line 5 end]; set op 0; set voice 0; set total 0
 						foreach user $users {
 							if {$user eq ""} { continue }
-							set status [string index $user 0]
-							set modes ""
-							if {$status eq "@" || $status eq "+"} {
-								append modes $status
-								set status [string index $user 1]
-								if {$status eq "@" || $status eq "+"} {
-									append modes $status
-									set user [string range $user 2 end]
-								} else {
-									set user [string range $user 1 end]
-								}
-							}
-							__channel__::__addusertochanlist $channel $user $modes
+							__channel__::__addusertochanlist $channel [string map { @ {} + {} } $user] ""
 						}
 					} elseif {[string equal -nocase "366" [lindex [split $__line] 1]]} {
+						# only process this for binds
 						set for [lindex [split $__line] 2]
 						set channel [lindex [split $__line] 3]
 						if {![string equal -nocase "$for" "$__botnick"]} { puts "__loop raw 366 error: Reply meant for '$for' not me"; continue }
 						if {![validchan $channel]} { puts "__loop raw 366 error: Reply for unknown channel $channel"; continue }
-						#set op 0; set voice 0; set total 0
-						#foreach user [chanlist $channel] {
-						#	if {$user eq ""} { continue }
-						#	if {[isop $user $channel]} { incr op }
-						#	if {[isvoice $user $channel]} { incr voice }
-						#	incr total
-						#}
-						#__writetosock "PRIVMSG $channel :I have $total user(s) (Op: $op - Voice: $voice)"
-						__writetosock "WHO $channel n%hilnrua"
+						__writetosock "WHO $channel n%chilnruaf"
 					} elseif {[string equal -nocase "354" [lindex [split $__line] 1]]} {
-						set ident [lindex [split $__line] 3]
-						set ip [lindex [split $__line] 4]
-						set rdns [lindex [split $__line] 5]
-						set nickname [lindex [split $__line] 6]
-						set idletime [lindex [split $__line] 7]
-						set authname [lindex [split $__line] 8]
-						set realname [string trimleft [lrange $__line 9 end] :]
+						set channel [string tolower [lindex [split $__line] 3]]
+						if {![validchan $channel]} { puts "__loop raw 354 error: Reply for unknown channel $channel"; continue }
+						if {![info exists __joined($channel)]} { set __joined($channel) [clock clicks] }
+						set ident [lindex [split $__line] 4]
+						set ip [lindex [split $__line] 5]
+						set rdns [lindex [split $__line] 6]
+						set nickname [lindex [split $__line] 7]
+						set flags [lindex [split $__line] 8]
+						set idletime [lindex [split $__line] 9]
+						set authname [lindex [split $__line] 10]
+						set realname [string trimleft [lrange $__line 11 end] :]
+						set status ""
+						if {[string match "*@*" $flags]} { append status o }
+						if {[string match "*+*" $flags]} { append status v }
+						__channel__::__addusertochanlist $channel $nickname $status
 						__users__::__adduserinfotolist $nickname $ident $rdns $ip $authname $idletime $realname
 					} elseif {[string equal -nocase "315" [lindex [split $__line] 1]]} {
-						# :blacklotus.ca.us.quakenet.org 315 r0t3n #r0t3n :End of /WHO list.
 						set for [lindex [split $__line] 2]
 						set channel [string tolower [lindex [split $__line] 3]]
 						if {![string equal -nocase "$for" "$__botnick"]} { puts "__loop raw 315 error: Reply meant for '$for' not me"; continue }
 						if {![validchan $channel]} { puts "__loop raw 315 error: Reply for unknown channel $channel"; continue }
 						set ms "[format "%.2f" [expr {([clock clicks]-$__joined($channel)) / 1000.0}]]ms"
 						__writetosock "PRIVMSG $channel :Processed $channel in $ms (Users: [llength [chanlist $channel]])"
-						puts "$channel [llength [chanlist $channel]]: [join [chanlist $channel] ", "]"
+						#puts "$channel [llength [chanlist $channel]]: [join [chanlist $channel] ", "]"
 					}						
 					# process this line and fire off the binds
 				}
