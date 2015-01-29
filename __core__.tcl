@@ -192,7 +192,7 @@ namespace eval __core__ {
 						foreach user [chanlist $channel] {
 							if {[isop $user $channel]} { incr op }
 							if {[isvoice $user $channel]} { incr voice }
-							if {[isauthed $user $channel]} { incr authed }
+							if {[isauthed $user]} { incr authed }
 						}
 						__writetosock "PRIVMSG $channel :Processed $channel in $ms (Users: [llength [chanlist $channel]] - Op: $op - Voice: $voice - Authed: $authed)"
 						#puts "$channel [llength [chanlist $channel]]: [join [chanlist $channel] ", "]"
