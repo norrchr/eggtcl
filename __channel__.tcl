@@ -109,7 +109,7 @@ namespace eval __channel__ {
 		set channel [string tolower $channel]
 		set nickname [string tolower $nickname]
 		if {![info exists __chanlist($channel,$nickname)]} { return 0 }
-		return [string match "*o*" $__chanlist($channel,$nickname)]
+		return [string match "*v*" $__chanlist($channel,$nickname)]
 	}		
 	
 	proc __loadchannels {} {
