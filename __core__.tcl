@@ -188,7 +188,13 @@ namespace eval __core__ {
 						if {![string equal -nocase "$for" "$__botnick"]} { puts "__loop raw 315 error: Reply meant for '$for' not me"; continue }
 						if {![validchan $channel]} { puts "__loop raw 315 error: Reply for unknown channel $channel"; continue }
 						set ms "[format "%.2f" [expr {([clock clicks]-$__joined($channel)) / 1000.0}]]ms"
-						__writetosock "PRIVMSG $channel :Processed $channel in $ms (Users: [llength [chanlist $channel]])"
+						set op 0; set voice 0; set authed 0
+						foreach user [chanlist $channel] {
+							if {[isop $user $channel]} { incr op }
+							if {[isvoice $user $channel]} { incr voice }
+							if {[isauthed $user $channel]} { incr authed }
+						}
+						__writetosock "PRIVMSG $channel :Processed $channel in $ms (Users: [llength [chanlist $channel]] - Op: $op - Voice: $voice - Authed: $authed)"
 						#puts "$channel [llength [chanlist $channel]]: [join [chanlist $channel] ", "]"
 					}						
 					# process this line and fire off the binds
@@ -237,6 +243,7 @@ source [pwd]/__users__.tcl
 
 namespace import __channel__::channel __channel__::chanlist __channel__::isop __channel__::isvoice __channel__::channels __channel__::validchan
 namespace import __core__::__writetosock __core__::putquick __core__::die __core__::rehash
+namespace import __users__::isauthed
 
 puts "__core__::__doconnection"
 __core__::__doconnection

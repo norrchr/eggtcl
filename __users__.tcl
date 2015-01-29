@@ -1,5 +1,7 @@
 namespace eval __users__ {
 
+	namespace export isauthed
+
 	if {![array exists ___ircusers]} {
 		array set __ircusers {}
 	}
@@ -22,6 +24,15 @@ namespace eval __users__ {
 		set __ircusers($nickname,idletime) "$idletime"
 		set __ircusers($nickname,realname) "$realname"
 		return 1
+	}
+	
+	proc isauthed {nickname} {
+		variable __ircusers
+		set nickname [string tolower $nickname]
+		if {[info exists __ircusers($nickname,authname)]} {
+			return [expr {$__ircusers($nickname,authname) eq 0 ? "0" : "1"}]
+		}
+		return 0
 	}
 	
 	proc __updateinfolistbynick {nickname newnickname} {
