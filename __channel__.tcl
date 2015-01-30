@@ -1,6 +1,6 @@
 namespace eval __channel__ {
 
-	namespace export channel chanlist isop isvoice channels validchan
+	namespace export channel chanlist isop isvoice channels validchan onchan
 	
 	if {![array exists __chanlist]} {
 		array set __chanlist {}
@@ -110,7 +110,23 @@ namespace eval __channel__ {
 		set nickname [string tolower $nickname]
 		if {![info exists __chanlist($channel,$nickname)]} { return 0 }
 		return [string match "*v*" $__chanlist($channel,$nickname)]
-	}		
+	}
+
+	proc onchan {nickname {channel {}}} {
+		variable __chanlist
+		set nickname [string tolower $nickname]
+		set channel [string tolower $channel]
+		if {$channel eq ""} {
+			if {[llength [array names __chanlist *,$nickname]]>=1} {
+				return 1
+			}
+			return 0
+		} elseif {![validchan $channel]} {
+			return -err "Invalid channel: $channel"
+		} else {
+			return [info exists __chanlist($channel,$nickname)]
+		}
+	}
 	
 	proc __loadchannels {} {
 		variable __channels
@@ -118,7 +134,7 @@ namespace eval __channel__ {
 			set channel [string tolower $x(channel)]
 			set __channels($channel) [list active 1 created \{$x(created)\}]
 			__core__::__writetosock "JOIN $channel"
-			__core__::__writetosock "PRIVMSG $channel :I'm a pure-tcl eggdrop using sqlite3 as my database"
+			#__core__::__writetosock "PRIVMSG $channel :I'm a pure-tcl eggdrop using sqlite3 as my database"
 		}
 	}
 	

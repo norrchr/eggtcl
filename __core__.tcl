@@ -1,3 +1,5 @@
+source [pwd]/__overwrite__.tcl
+
 namespace eval __core__ {
 
 	namespace export die rehash __writetosock putquick
@@ -198,6 +200,7 @@ namespace eval __core__ {
 						#puts "$channel [llength [chanlist $channel]]: [join [chanlist $channel] ", "]"
 					}						
 					# process this line and fire off the binds
+					__binds__::__checkbinds $__line
 				}
 				set minute [clock format [clock seconds] -format %M]
 				if {![info exists __bindtimets] || $__bindtimets eq ""} { set __bindtimets $minute }
@@ -240,10 +243,21 @@ namespace eval __core__ {
 source [pwd]/__database__.tcl
 source [pwd]/__channel__.tcl
 source [pwd]/__users__.tcl
+source [pwd]/__binds__.tcl
+source [pwd]/__eggdrop__.tcl
 
-namespace import __channel__::channel __channel__::chanlist __channel__::isop __channel__::isvoice __channel__::channels __channel__::validchan
+namespace import __channel__::channel __channel__::chanlist __channel__::isop __channel__::isvoice __channel__::channels __channel__::validchan __channel__::onchan
 namespace import __core__::__writetosock __core__::putquick __core__::die __core__::rehash
 namespace import __users__::isauthed
+
+bind pub - !blazed pub_blazed
+bind pub - ?gay pub_gay
+bind pub - %fail pub_fail
+bind pubm - !* pubm_gay
+
+if {[file exists [pwd]/__config__.tcl]} {
+	source [pwd]/__config__.tcl
+}
 
 puts "__core__::__doconnection"
 __core__::__doconnection
