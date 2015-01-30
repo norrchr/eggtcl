@@ -76,7 +76,7 @@ namespace eval __binds__ {
 					set mask [join [lrange $bind 3 end]]
 					#if {![matchattr $handle [lindex [split $bind] 0] $target]} { continue }
 					if {[string index [lindex [split $mask] 0] 0] eq "#" && ![string equal -nocase [lindex [split $mask] 0] $target]} { continue }
-					if {[string match -nocase "*$mask*" "$message"]} {
+					if {[string match -nocase "$mask" "$message"]} {
 						if {[catch {set r [::[lindex [split $bind] 2] $nickname $hostname $handle $target $message]} err]} {
 							puts "Bind error for \"$mask\" (::[lindex [split $bind] 2]): $err"
 						} elseif {$r eq "1"} {
@@ -121,5 +121,3 @@ namespace eval __binds__ {
 }
 
 namespace import __binds__::bind __binds__::unbind __binds__::binds
-
-#__binds__::__checkbinds "nick!ident@host PRIVMSG #channel :im semi-afk btw, talking about \"emotions\" with a girl im \"dating\". Or, she is and im trying to figure out how to deal with it ^^"

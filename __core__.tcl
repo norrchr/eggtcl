@@ -250,11 +250,6 @@ namespace import __channel__::channel __channel__::chanlist __channel__::isop __
 namespace import __core__::__writetosock __core__::putquick __core__::die __core__::rehash
 namespace import __users__::isauthed
 
-bind pub - !blazed pub_blazed
-bind pub - ?gay pub_gay
-bind pub - %fail pub_fail
-bind pubm - !* pubm_gay
-
 if {[file exists [pwd]/__config__.tcl]} {
 	source [pwd]/__config__.tcl
 }
