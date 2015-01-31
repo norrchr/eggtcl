@@ -2,7 +2,7 @@ source [pwd]/__overwrite__.tcl
 
 namespace eval __core__ {
 
-	namespace export die rehash __writetosock putquick
+	namespace export die rehash __writetosock putquick putserv puthelp
 	
 	variable __version "0.0.0.2 BETA"
 	
@@ -44,10 +44,24 @@ namespace eval __core__ {
 		source $__configfile
 	}
 	
-	proc putquick {message} {
+	proc putquick {text {options {}}} {
 		variable __sock; variable __connected
 		if {$__sock ne "" || !$__connected} {
-			__writetosock $message
+			__writetosock $text
+		}
+	}
+	
+	proc putserv {text {options {}}} {
+		variable __sock; variable __connected
+		if {$__sock ne "" || !$__connected} {
+			__writetosock $text
+		}
+	}
+	
+	proc puthelp {text {options {}}} {
+		variable __sock; variable __connected
+		if {$__sock ne "" || !$__connected} {
+			__writetosock $text
 		}
 	}
 	
@@ -247,7 +261,7 @@ source [pwd]/__binds__.tcl
 source [pwd]/__eggdrop__.tcl
 
 namespace import __channel__::channel __channel__::chanlist __channel__::isop __channel__::isvoice __channel__::channels __channel__::validchan __channel__::onchan
-namespace import __core__::__writetosock __core__::putquick __core__::die __core__::rehash
+namespace import __core__::__writetosock __core__::putquick __core__::putserv __core__::puthelp __core__::die __core__::rehash
 namespace import __users__::isauthed
 
 if {[file exists [pwd]/__config__.tcl]} {

@@ -43,15 +43,14 @@ namespace eval __binds__ {
 	}
 	
 	proc __checkbinds {line} {
+		global lastbind
 		if {[string equal -nocase "PRIVMSG" [lindex [split $line] 1]]} {
 			set nickname [string trimleft [lindex [split [lindex [split $line] 0] !] 0] :]
 			set hostname [lindex [split [lindex [split $line] 0] !] 1]
 			#set handle [nick2hand $nickname]
 			set handle "*"
 			set target [lindex [split $line] 2]
-			#puts "message:"
 			set message [string trimleft [join [lrange [split $line] 3 end]] :]
-			#puts "$message"
 			if {[string index $target 0] eq "#"} {
 				variable __pub; variable __pubm
 				#puts "checking pub binds"
@@ -61,8 +60,9 @@ namespace eval __binds__ {
 					#if {![matchattr $handle [lindex [split $bind] 0] $target]} { continue }
 					if {[string equal -nocase [lindex [split $bind] end] [lindex [split $message] 0]]} {
 						puts "Bind match: [lindex [split $bind] end]"
-						set f 1
-						if {[catch {set r [::[lindex [split $bind] 2] $nickname $hostname $handle $target [join [lrange $message 1 end]]]} err]} {
+						puts "Bind details: $nickname / $hostname / $handle / $target / $message"
+						set f 1; set lastbind [lindex [split $bind] end]
+						if {[catch {set r [::[lindex [split $bind] 2] $nickname $hostname $handle $target [lrange $message 1 end]]} err]} {
 							puts "Bind error for \"[lindex [split $bind] end]\" (::[lindex [split $bind] 2]): $err"
 						} elseif {$r eq "1"} {
 							return 
@@ -77,6 +77,8 @@ namespace eval __binds__ {
 					#if {![matchattr $handle [lindex [split $bind] 0] $target]} { continue }
 					if {[string index [lindex [split $mask] 0] 0] eq "#" && ![string equal -nocase [lindex [split $mask] 0] $target]} { continue }
 					if {[string match -nocase "$mask" "$message"]} {
+						puts "Bind match: $mask"; set lastbind "$mask"
+						puts "Bind details: $nickname / $hostname / $handle / $target / $message"
 						if {[catch {set r [::[lindex [split $bind] 2] $nickname $hostname $handle $target $message]} err]} {
 							puts "Bind error for \"$mask\" (::[lindex [split $bind] 2]): $err"
 						} elseif {$r eq "1"} {
